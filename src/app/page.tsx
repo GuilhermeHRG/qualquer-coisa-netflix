@@ -2,11 +2,24 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import Image from 'next/image';
+
+type TitleData = {
+  title: string;
+  year: string;
+  genres: string[];
+  status: string;
+  creators: string[];
+  rating: number | null;
+  overview: string;
+  poster: string | null;
+  trailer_url: string | null;
+};
 
 export default function Home() {
-  const [type, setType] = useState('movie');
+  const [type, setType] = useState<'movie' | 'tv'>('movie');
   const [genre, setGenre] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<TitleData | null>(null);
   const [loading, setLoading] = useState(false);
 
   const genres = [
@@ -25,7 +38,7 @@ export default function Home() {
   const getRandomTitle = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/random', {
+      const res = await axios.get<TitleData>('/api/random', {
         params: { type, genre },
       });
       setResult(res.data);
@@ -41,7 +54,7 @@ export default function Home() {
       <div style={styles.header}>
         <h1 style={styles.logo}>🎬 Qualquer Coisa Netflix</h1>
         <div style={styles.controls}>
-          <select value={type} onChange={(e) => setType(e.target.value)} style={styles.select}>
+          <select value={type} onChange={(e) => setType(e.target.value as 'movie' | 'tv')} style={styles.select}>
             <option value="movie">Filme</option>
             <option value="tv">Série</option>
           </select>
@@ -59,15 +72,24 @@ export default function Home() {
 
       {result && (
         <div style={styles.card}>
-          {result.poster && <img src={result.poster} alt={result.title} style={styles.poster} />}
+          {result.poster && (
+            <Image
+              src={result.poster}
+              alt={result.title}
+              width={800}
+              height={450}
+              style={styles.poster}
+              priority
+            />
+          )}
           <div style={styles.info}>
             <h2>{result.title} <span style={{ color: '#888' }}>({result.year})</span></h2>
             <p style={styles.genres}>{result.genres.join(', ')}</p>
             <p style={styles.status}>Status: {result.status}</p>
-            {result.creators?.length > 0 && (
+            {result.creators.length > 0 && (
               <p><strong>Criação:</strong> {result.creators.join(', ')}</p>
             )}
-            {result.rating && (
+            {result.rating !== null && (
               <p style={styles.rating}>⭐ {result.rating}% aprovação</p>
             )}
             <p style={styles.overview}>{result.overview}</p>
@@ -137,7 +159,7 @@ const styles = {
   },
   poster: {
     width: '100%',
-    maxHeight: '500px',
+    height: 'auto',
     objectFit: 'cover' as const,
   },
   info: {
@@ -170,5 +192,5 @@ const styles = {
     padding: '10px 18px',
     borderRadius: '5px',
     fontWeight: 'bold' as const,
-  }
+  },
 };
