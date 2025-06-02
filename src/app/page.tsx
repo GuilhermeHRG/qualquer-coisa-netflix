@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
+import './styles.css'
 
 type TitleData = {
   title: string;
@@ -49,6 +50,19 @@ export default function Home() {
     }
   };
 
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  handleResize(); // executar ao montar
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+
   return (
     <main style={styles.page}>
       <div style={styles.header}>
@@ -71,16 +85,17 @@ export default function Home() {
       </div>
 
       {result && (
-        <div style={styles.card}>
+<div style={isMobile ? styles.cardMobile : styles.cardDesktop}>
           {result.poster && (
             <Image
-              src={result.poster}
-              alt={result.title}
-              width={800}
-              height={450}
-              style={styles.poster}
-              priority
-            />
+  src={result.poster}
+  alt={result.title}
+  width={isMobile ? 600 : 300}
+  height={isMobile ? 350 : 450}
+  style={isMobile ? styles.posterMobile : styles.posterDesktop}
+  priority
+/>
+
           )}
           <div style={styles.info}>
             <h2>{result.title} <span style={{ color: '#888' }}>({result.year})</span></h2>
@@ -147,24 +162,59 @@ const styles = {
     cursor: 'pointer',
     borderRadius: '4px',
   },
-  card: {
-    maxWidth: 900,
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    backgroundColor: '#1e1e1e',
-    borderRadius: '10px',
-    overflow: 'hidden',
-    boxShadow: '0 0 15px rgba(0,0,0,0.5)',
-  },
-  poster: {
-    width: '100%',
-    height: 'auto',
-    objectFit: 'cover' as const,
-  },
+  cardMobile: {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  gap: '20px',
+  backgroundColor: '#1e1e1e',
+  borderRadius: '10px',
+  overflow: 'hidden',
+  boxShadow: '0 0 15px rgba(0,0,0,0.5)',
+  padding: '20px',
+},
+
+cardDesktop: {
+  display: 'flex',
+  flexDirection: 'row' as const,
+  gap: '20px',
+  backgroundColor: '#1e1e1e',
+  borderRadius: '10px',
+  overflow: 'hidden',
+  boxShadow: '0 0 15px rgba(0,0,0,0.5)',
+  padding: '20px',
+  alignItems: 'flex-start',
+  maxWidth: 1000,
+  margin: '0 auto',
+},
+
+
+
+posterDesktop: {
+  width: '300px',
+  height: 'auto',
+  objectFit: 'contain' as const,
+  display: 'block',
+  borderRadius: '8px',
+},
+
+posterMobile: {
+  width: '100%',
+  maxWidth: '100%',
+  height: 'auto',
+  objectFit: 'contain' as const,
+  display: 'block',
+  margin: '0 auto',
+  borderRadius: '8px',
+},
+
+
+
+
   info: {
-    padding: '20px',
-  },
+  flex: 1,
+  width: '100%',
+},
+
   genres: {
     color: '#aaa',
     fontStyle: 'italic',

@@ -57,25 +57,26 @@ export async function GET(req: Request) {
     ]);
 
     const details = detailsRes.data;
-    const creators = (details.created_by as Creator[] || []).map(c => c.name).slice(0, 2);
+    const creators = Array.isArray(details.created_by)
+  ? details.created_by.map((c: Creator) => c.name).slice(0, 2)
+  : [];
 
-    const trailer = (videosRes.data.results as Video[]).find(
-      (v) => v.type === 'Trailer' && v.site === 'YouTube'
-    );
+const trailer = (videosRes.data.results as Video[]).find(
+  (v) => v.type === 'Trailer' && v.site === 'YouTube'
+);
 
-    return NextResponse.json({
-      title: details.title || details.name,
-      year: (details.release_date || details.first_air_date || '').split('-')[0],
-      overview: details.overview,
-      genres: (details.genres as Genre[]).map((g) => g.name),
-      poster: details.poster_path
-        ? `https://image.tmdb.org/t/p/w500${details.poster_path}`
-        : null,
-      rating: details.vote_average ? Math.round(details.vote_average * 10) : null,
-      status: details.status,
-      creators,
-      trailer_url: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-    });
+return NextResponse.json({
+  title: details.title || details.name,
+  year: (details.release_date || details.first_air_date || '').split('-')[0],
+  overview: details.overview,
+  genres: (details.genres as Genre[]).map((g) => g.name),
+  poster: chosen.poster_path ? `https://image.tmdb.org/t/p/w500${chosen.poster_path}` : null,
+  rating: details.vote_average ? Math.round(details.vote_average * 10) : null,
+  status: details.status,
+  creators,
+  trailer_url: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
+});
+
   } catch (error) {
     console.error('Erro na API do TMDb:', error);
     return NextResponse.json({ error: 'Erro ao buscar título completo' }, { status: 500 });
